@@ -80,8 +80,8 @@ Class {
 		'packagePatterns',
 		'matchedPackages'
 	],
-	#category : 'VocAnalyzer',
-	#package : 'VocAnalyzer'
+	#category : 'ExtendedHeuristicCompletion-Analyser',
+	#package : 'ExtendedHeuristicCompletion-Analyser'
 }
 
 { #category : 'as yet unclassified' }

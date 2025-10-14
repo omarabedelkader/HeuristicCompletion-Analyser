@@ -7,8 +7,8 @@ Class {
 	#instVars : [
 		'reporter'
 	],
-	#category : 'VocAnalyzer-Tests',
-	#package : 'VocAnalyzer-Tests'
+	#category : 'ExtendedHeuristicCompletion-Analyser-Tests',
+	#package : 'ExtendedHeuristicCompletion-Analyser-Tests'
 }
 
 { #category : 'tests' }
