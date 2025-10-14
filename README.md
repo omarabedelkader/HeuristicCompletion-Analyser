@@ -1,4 +1,4 @@
-# VocAnalyzer
+# HeuristicCompletion-Analyser 
 
 ```smalltalk
 
