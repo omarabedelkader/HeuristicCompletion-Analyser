@@ -14,5 +14,14 @@ BaselineOfExtendedHeuristicCompletionAnalyser >> baseline: spec [
 	spec
 		package: 'ExtendedHeuristicCompletion-Analyser-Tests'
 		with: [ spec requires: 'ExtendedHeuristicCompletion-Analyser' ].
+		
+			spec package: 'ExtendedHeuristicCompletion-Analyser-Data' with: [
+			spec requires: 'ExtendedHeuristicCompletion-Analyser-Tests'].
+					spec package: 'ExtendedHeuristicCompletion-Analyser-Data2' with: [
+			spec requires: 'ExtendedHeuristicCompletion-Analyser-Tests'].
+							spec package: 'ExtendedHeuristicCompletion-Analyser-Data3' with: [
+			spec requires: 'ExtendedHeuristicCompletion-Analyser-Tests'].
+							spec package: 'ExtendedHeuristicCompletion-Analyser-Data4' with: [
+			spec requires: 'ExtendedHeuristicCompletion-Analyser-Tests']
 		]
 ]
