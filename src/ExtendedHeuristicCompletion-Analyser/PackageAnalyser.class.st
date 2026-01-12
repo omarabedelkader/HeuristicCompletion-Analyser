@@ -26,6 +26,12 @@ PackageAnalyser >> allReferencedClasses [
 	^ referencesByClass keys
 ]
 
+{ #category : 'initialization' }
+PackageAnalyser >> ambiguity [
+
+	^ self completionVocabularyExternalRatio
+]
+
 { #category : 'widget API' }
 PackageAnalyser >> collectClassDefinitions [
 
@@ -45,6 +51,66 @@ PackageAnalyser >> collectClassReferences [
 				ifTrue: [ self noteReferenceIn: method forClass: node name ]
 		]
 	]
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionEntropy [
+
+| counts total |
+	counts := referencesByClass values collect: [ :methods | methods size ].
+	counts isEmpty ifTrue: [ ^ 0.0 ].
+	total := counts sum.
+	total = 0 ifTrue: [ ^ 0.0 ].
+	^ counts inject: 0.0 into: [ :sum :count |
+		  | p |
+		  p := count / total asFloat.
+		  sum - (p * (p log: 2)) ]
+
+
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabulary [
+
+	^ definedClassNames union: self externalReferences asSet
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabularyExternalCount [
+
+	^ self externalReferences size
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabularyExternalRatio [
+
+	| total |
+	total := self completionVocabularySize.
+	^ total = 0
+		  ifTrue: [ 0.0 ]
+		  ifFalse: [ self completionVocabularyExternalCount / total asFloat ]
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabularyInternalCount [
+
+	^ definedClassNames size
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabularyInternalRatio [
+
+	| total |
+	total := self completionVocabularySize.
+	^ total = 0
+		  ifTrue: [ 0.0 ]
+		  ifFalse: [ self completionVocabularyInternalCount / total asFloat ]
+]
+
+{ #category : 'initialization' }
+PackageAnalyser >> completionVocabularySize [
+
+	^ self completionVocabulary size
 ]
 
 { #category : 'initialization' }
