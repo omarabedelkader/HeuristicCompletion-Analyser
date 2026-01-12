@@ -161,11 +161,27 @@ CooPackageMetrics class >> logLatexTableWithTitle: title headers: headers rows: 
 ]
 
 { #category : 'examples' }
+CooPackageMetrics class >> logSectionLabel: sectionName packageNames: packageNames [
+
+	Transcript
+		show: sectionName;
+		show: ': {'.
+	Transcript
+		show: (String streamContents: [ :stream |
+					packageNames
+						do: [ :name | stream nextPutAll: (self latexEscape: name) ]
+						separatedBy: [ stream nextPutAll: ', ' ] ]);
+		show: '}';
+		cr
+]
+
+{ #category : 'examples' }
 CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 
 	| rows packageCount |
 	packageCount := packageNames size.
 	rows := packageNames collect: [ :name | self packageMetricsForName: name packageCount: packageCount ].
+	self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Package Scope \& Size Metrics'
 		headers: { 'Package'. 'M_{pkg}'. 'C_{tot}'. 'C_{def}' }
 		rows: (rows collect: [ :row |
@@ -173,6 +189,7 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #packageCount.
 					 row at: #totalClasses.
 					 row at: #definedClasses } ]).
+	self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Class-Level Structural Metrics'
 		headers: { 'Package'. 'M_{tot}'. 'AM_{cls}'. 'AI_{cls}' }
 		rows: (rows collect: [ :row |
@@ -180,12 +197,14 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #totalMethods.
 					 row at: #averageMethodsPerClass.
 					 row at: #averageInstanceVariablesPerClass } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Package and Design Granularity Metrics'
 		headers: { 'Package'. 'R_{CP}'. 'R_{CM}' }
 		rows: (rows collect: [ :row |
 					 { row at: #name.
 					 row at: #classPackageRatio.
 					 row at: #classMethodRatio } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Method-Level Quality and Maintenance Metrics'
 		headers: { 'Package'. 'M_{dep}'. 'U_{sel}'. 'M_{LOC}' }
 		rows: (rows collect: [ :row |
@@ -193,6 +212,7 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #deprecatedMethods.
 					 row at: #uniqueMethods.
 					 row at: #methodsWithMostLinesOfCode } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Locality and Dependency Metrics'
 		headers: { 'Package'. 'R_{def}'. 'R_{use}'. 'R_{du}' }
 		rows: (rows collect: [ :row |
@@ -200,6 +220,7 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #localityDefinitionRatio.
 					 row at: #localityUseRatio.
 					 row at: #localityDefUseRatio } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Package Usage and Dependency Direction Metrics'
 		headers: { 'Package'. 'R_{int}'. 'U_{int}'. 'R_{ext}' }
 		rows: (rows collect: [ :row |
@@ -207,6 +228,7 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #internalUserRatio.
 					 row at: #internalUserCount.
 					 row at: #externalReferenceCount } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Code Completion Vocabulary Metrics'
 		headers: { 'Package'. 'V'. 'R_{V}^{int}'. 'R_{V}^{ext}' }
 		rows: (rows collect: [ :row |
@@ -214,6 +236,7 @@ CooPackageMetrics class >> logTablesForPackageNames: packageNames [
 					 row at: #completionVocabularySize.
 					 row at: #completionVocabularyInternalRatio.
 					 row at: #completionVocabularyExternalRatio } ]).
+				self logSectionLabel: 'details' packageNames: packageNames.
 	self logLatexTableWithTitle: 'Code Completion Uncertainty Metrics'
 		headers: { 'Package'. 'A_{comp}'. 'H_{comp}' }
 		rows: (rows collect: [ :row |
@@ -539,21 +562,38 @@ CooPackageMetrics >> logAnalysis [
 
 	| summaryRows formatValue |
 	formatValue := [ :value |
-		value isNumber
-			ifTrue: [
-				value isInteger
-					ifTrue: [ value printString ]
-					ifFalse: [ value asFloat printShowingDecimalPlaces: 2 ] ]
-			ifFalse: [ value printString ] ].
-		
+		               value isNumber
+			               ifTrue: [
+					               value isInteger
+						               ifTrue: [ value printString ]
+						               ifFalse: [ value asFloat printShowingDecimalPlaces: 2 ] ]
+			               ifFalse: [ value printString ] ].
+
 	summaryRows := {
-		               		{ 'Packages matched'. formatValue value: self matchedPackages size }.
-		{ 'Classes found'. formatValue value: self numberOfClasses }.
-		{ 'Average methods per class'. formatValue value: self averageMethodsPerClass }.
-		{ 'Average instance variables per class'. formatValue value: self averageInstanceVariablesPerClass }.
-		{ 'Class to package ratio'. formatValue value: self classPackageRatio }.
-		{ 'Deprecated methods found'. formatValue value: self deprecatedMethods size }.
-		{ 'Unique methods'. formatValue value: self uniqueMethods size } }.
+		               {
+			               'Packages matched'.
+			               (formatValue value: self matchedPackages size) }.
+		               {
+			               'Classes found'.
+			               (formatValue value: self numberOfClasses) }.
+		               {
+			               'Average methods per class'.
+			               (formatValue value: self averageMethodsPerClass) }.
+		               {
+			               'Average instance variables per class'.
+			               (formatValue value: self averageInstanceVariablesPerClass) }.
+		               {
+			               'Class to package ratio'.
+			               (formatValue value: self classPackageRatio) }.
+		               {
+			               'Deprecated methods found'.
+			               (formatValue value: self deprecatedMethods size) }.
+		               {
+			               'Unique methods'.
+			               (formatValue value: self uniqueMethods size) } }.
+			self class
+		logSectionLabel: 'summary'
+		packageNames: (self matchedPackages collect: [ :pkg | pkg name ]).
 	Transcript
 		show: (String streamContents: [ :stream |
 						 stream
