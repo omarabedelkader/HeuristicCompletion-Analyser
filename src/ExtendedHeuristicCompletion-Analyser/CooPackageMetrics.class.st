@@ -3,7 +3,7 @@ Some class
 "
 Class {
 	#name : 'CooPackageMetrics',
-	#superclass : 'CooPackage',
+	#superclass : 'PackageAnalyser',
 	#instVars : [
 		'packagePatterns',
 		'matchedPackages',
