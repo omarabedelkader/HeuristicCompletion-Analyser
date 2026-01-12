@@ -81,18 +81,33 @@ CooPackage class >> runForPackageNames: packageNames [
 			        totMethods.
 			        (totInternalRatio / packageNames size asFloat).
 			        internalUserCount.
-			        totExternalRefs }. "⇓ Print header first ⇓"
+			        totExternalRefs }.
+				rows := rows collect: [ :r |
+		        r withIndexCollect: [ :item :index |
+				        (index = 5 and: [ item isNumber ])
+					        ifTrue: [ item printShowingDecimalPlaces: 2 ]
+					        ifFalse: [ item ] ] ]. "⇓ Print header first ⇓"
 	Transcript
-		show: 'Package|Classes|Defined|Methods|InternalRatio|InternalUsers|ExternalRefs#';
-		cr. "⇓ Print each row with | as separator and # at end ⇓"
+		show: '\begin{tabular}{lrrrrrr}';
+		cr;
+		show: '\hline';
+		cr;
+		show: 'Package & Classes & Defined & Methods & InternalRatio & InternalUsers & ExternalRefs \\';
+		cr;
+		show: '\hline';
+		cr.
 	rows do: [ :r |
 			Transcript
 				show: (String streamContents: [ :s |
-								 r do: [ :item |
-											 s nextPutAll: item asString.
-											 s nextPut: $| ].
-								 s nextPut: $# "end of row marker" ]);
+								 r do: [ :item | s nextPutAll: item asString ] separatedBy: [ s nextPutAll: ' & ' ].
+								 s nextPutAll: ' \\' ]);
 				cr ].
+
+	Transcript
+		show: '\hline';
+		cr;
+		show: '\end{tabular}';
+		cr.
 
 	^ rows
 ]

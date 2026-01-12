@@ -21,6 +21,65 @@ Class {
 }
 
 { #category : 'examples' }
+CooPackageMetrics class >> all [
+
+	<script>
+	^ (self runAllForPackageNames:
+		   { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
+		   'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'.
+		   'Spec2-Commands'. 'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'.
+		   'Spec2-Layout'. 'Spec2-ListView'. 'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission'.
+		   'Spec2-Adapters-Morphic-Tests'. 'Spec2-Adapters-Stub'. 'Spec2-Backend-Tests'. 'Spec2-Code-Backend-Tests'.
+		   'Spec2-Code-Diff-Tests'. 'Spec2-Code-Tests'. 'Spec2-Commander2-Tests'. 'Spec2-Dialogs-Tests'. 'Spec2-Morphic-Backend-Tests'.
+		   'Spec2-Morphic-Tests'. 'Spec2-Tests'. 'Seaside-Tests-Canvas'. 'Seaside-Tests-Component'. 'Seaside-Tests-Core'.
+		   'Seaside-Tests-Environment'. 'Seaside-Tests-Flow'. 'Seaside-Tests-Functional'. 'Seaside-Tests-Pharo-Canvas'.
+		   'Seaside-Tests-Pharo-Continuation'. 'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'.
+		   'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session'. 'Seaside-Ajaxifier-Core'. 'Seaside-Canvas'. 'Seaside-Component'.
+		   'Seaside-Continuation'. 'Seaside-Core'. 'Seaside-Development'. 'Seaside-Email'. 'Seaside-Environment'. 'Seaside-Examples'.
+		   'Seaside-Flow'. 'Seaside-JSON-Core'. 'Seaside-Pharo-Canvas'. 'Seaside-Pharo-Continuation'. 'Seaside-Pharo-Core'.
+		   'Seaside-Pharo-Development'. 'Seaside-Pharo-Email'. 'Seaside-Pharo-Environment'. 'Seaside-Pharo-Flow'. 'Seaside-Pharo-JSON-Core'.
+		   'Seaside-Pharo-Tools-Web'. 'Seaside-Pharo-Welcome'. 'Seaside-REST-Core'. 'Seaside-RenderLoop'. 'Seaside-Session'.
+		   'Seaside-Tools-Core'. 'Seaside-Tools-Web'. 'Seaside-Welcome'. 'Seaside-Widgets'. 'Seaside-Zinc-Core'. 'Seaside-Zinc-Pharo'.
+		   'Roassal-Animation-Tests'. 'Roassal-BaselineMap-Tests'. 'Roassal-Chart-Tests'. 'Roassal-Exporters-Tests'.
+		   'Roassal-Global-Tests'. 'Roassal-Inspector-Tests'. 'Roassal-Interaction-Tests'. 'Roassal-LayoutStudio-Tests'.
+		   'Roassal-Layouts-Tests'. 'Roassal-Shapes-Tests'. 'Roassal-Spec-Tests'. 'Roassal-SVG-Tests'. 'Roassal-UML-Tests'.
+		   'Roassal'. 'Roassal-Animation'. 'Roassal-BaselineMap'. 'Roassal-Builders'. 'Roassal-Chart'. 'Roassal-Chart-Examples'.
+		   'Roassal-Class-Examples'. 'Roassal-Colors'. 'Roassal-DSM'. 'Roassal-Event'. 'Roassal-Examples'. 'Roassal-Experimental'.
+		   'Roassal-Exporters'. 'Roassal-Exporters-Examples'. 'Roassal-FlameGraph-Examples'. 'Roassal-Inspector'. 'Roassal-Interaction'.
+		   'Roassal-LayoutStudio'. 'Roassal-Layouts'. 'Roassal-Layouts-Util'. 'Roassal-Legend'. 'Roassal-Legend-Examples'.
+		   'Roassal-Menu'. 'Roassal-Mondrian'. 'Roassal-Pie'. 'Roassal-Pie-Examples'. 'Roassal-SVG'. 'Roassal-SVG-Examples'.
+		   'Roassal-Shapes'. 'Roassal-Spec'. 'Roassal-Spec-Examples'. 'Roassal-Spec-Morphic'. 'Roassal-Sunburst'. 'Roassal-Sunburst-Examples'.
+		   'Roassal-TreeMap'. 'Roassal-TreeMap-Examples'. 'Roassal-UML'. 'Roassal-UML-Calypso'. 'Roassal-UML-Examples'.
+		   'Moose-Blueprint-Models-Tests'. 'Moose-Core-Tests'. 'Moose-Core-Tests-Entities'. 'Moose-Importers-Tests'.
+		   'Moose-Query-Test'. 'Moose-SmalltalkImporter-Core-Tests'. 'Moose-SmalltalkImporter-KGB-Tests'.
+		   'Moose-SmalltalkImporter-LAN-Tests'. 'Moose-TestResources-KGB-P10InteractedReferee'.
+		   'Moose-TestResources-KGB-P11FullReferee'. 'Moose-TestResources-KGB-P12FullReferencer'.
+		   'Moose-TestResources-KGB-P13FullReferencer'. 'Moose-TestResources-KGB-P14FullReferee'.
+		   'Moose-TestResources-KGB-P1FullReferencer'. 'Moose-TestResources-KGB-P2InteractedReferencerReferee'.
+		   'Moose-TestResources-KGB-P3InteractedReferencer'. 'Moose-TestResources-KGB-P4FullInteracted'.
+		   'Moose-TestResources-KGB-P5FullReferee'. 'Moose-TestResources-KGB-P6InteractedReferee'.
+		   'Moose-TestResources-KGB-P7ReferencerReferee'. 'Moose-TestResources-KGB-P8FullReferencer'.
+		   'Moose-TestResources-KGB-P9FullReferencer'. 'Moose-TestResources-KGB-PExtensions'. 'Moose-TestResources-LAN'.
+		   'Moose-TestResources-LCOM'. 'Moose-TestResources-PackageBlueprint-P1'. 'Moose-TestResources-PackageBlueprint-P2'.
+		   'Moose-TestResources-PackageBlueprint-P3'. 'Moose-TestResources-PackageBlueprint-P4'.
+		   'Moose-TestResources-Reference-Core'. 'Moose-TestResources-Reference-External'. 'Moose-TestResources-Reference-PackageOne'.
+		   'Moose-TestResources-Reference-PackageTwo'. 'MooseIDE-ButterflyMap-Tests'. 'MooseIDE-CoUsageMap-Tests'.
+		   'MooseIDE-CriticBrowser-Tests'. 'MooseIDE-NewTools-Tests'. 'MooseIDE-QueriesBrowser-Tests'. 'MooseIDE-Spotter-Tests'.
+		   'MooseIDE-Tagging-Tests'. 'MooseIDE-Tests'. 'Moose-Blueprint-Invocations-Models'. 'Moose-Blueprint-Models'.
+		   'Moose-Blueprint-Visualization-Models'. 'Moose-Configuration'. 'Moose-Core'. 'Moose-Core-Generator'. 'Moose-Importers'.
+		   'Moose-Query'. 'Moose-Query-Extensions'. 'Moose-SmalltalkImporter'. 'MooseIDE-WelcomeBrowser'. 'MooseIDE-Analysis'.
+		   'MooseIDE-AttributedText'. 'MooseIDE-ButterflyMap'. 'MooseIDE-ClassBlueprint'. 'MooseIDE-CoUsageMap'. 'MooseIDE-Core'.
+		   'MooseIDE-Core-Reporter'. 'MooseIDE-CriticBrowser'. 'MooseIDE-Dependency'. 'MooseIDE-Duplication'. 'MooseIDE-Export'.
+		   'MooseIDE-Famix'. 'MooseIDE-LayerVisualization'. 'MooseIDE-Meta'. 'MooseIDE-NewTools'. 'MooseIDE-QueriesBrowser'.
+		   'MooseIDE-QueriesDashboard'. 'MooseIDE-Spotter'. 'MooseIDE-Tagging'. 'MooseIDE-Visualization'. 'Iceberg-Plugin-Migration-Tests'.
+		   'Iceberg-Tests'. 'Iceberg-Tests-MetacelloIntegration'. 'Iceberg-TipUI-SnapshotBrowser-Tests'.
+		   'Iceberg-UI-Tests'. 'Iceberg'. 'Iceberg-ArchitecturalRules'. 'Iceberg-Libgit'. 'Iceberg-Libgit-Filetree'.
+		   'Iceberg-Libgit-Tonel'. 'Iceberg-Memory'. 'Iceberg-Metacello-Integration'. 'Iceberg-Playground-Plugin-Gist'.
+		   'Iceberg-Plugin'. 'Iceberg-Plugin-Github'. 'Iceberg-Plugin-Metacello'. 'Iceberg-Plugin-Migration'. 'Iceberg-Plugin-Pharo'.
+		   'Iceberg-TipUI'. 'Iceberg-TipUI-SnapShotBrowser' })
+]
+
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> iceberg [
 
 	<script>
@@ -31,7 +90,7 @@ CooPackageMetrics class >> iceberg [
 		  inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> icebergTest [
 
 	<script>
@@ -40,7 +99,7 @@ CooPackageMetrics class >> icebergTest [
 		   'Iceberg-TipUI-SnapshotBrowser-Tests'. 'Iceberg-UI-Tests' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> moose [
 
 	<script>
@@ -53,7 +112,7 @@ CooPackageMetrics class >> moose [
 		   'MooseIDE-Tagging'. 'MooseIDE-Visualization' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> mooseTests [
 
 	<script>
@@ -76,7 +135,7 @@ CooPackageMetrics class >> mooseTests [
 		   'MooseIDE-Tagging-Tests'. 'MooseIDE-Tests' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> nec [
 
 	<script>
@@ -84,7 +143,7 @@ CooPackageMetrics class >> nec [
 		  inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> necTests [
 
 	<script>
@@ -92,7 +151,7 @@ CooPackageMetrics class >> necTests [
 		  inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> roassal [
 
 	<script>
@@ -106,7 +165,7 @@ CooPackageMetrics class >> roassal [
 		   'Roassal-TreeMap'. 'Roassal-TreeMap-Examples'. 'Roassal-UML'. 'Roassal-UML-Calypso'. 'Roassal-UML-Examples' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> roassalTests [
 
 	<script>
@@ -145,7 +204,7 @@ CooPackageMetrics class >> runAllOnPatterns: patternList [
 	^ results
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> seaside [
 
 	<script>
@@ -158,7 +217,7 @@ CooPackageMetrics class >> seaside [
 		   'Seaside-Zinc-Core'. 'Seaside-Zinc-Pharo' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> seasideTests [
 
 	<script>
@@ -168,7 +227,7 @@ CooPackageMetrics class >> seasideTests [
 		   'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'. 'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session' }) inspect
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> spec [
 
 	<script>
@@ -179,7 +238,7 @@ CooPackageMetrics class >> spec [
 		  'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission' }
 ]
 
-{ #category : 'examples' }
+{ #category : 'TO-DELETE' }
 CooPackageMetrics class >> specTests [
 
 	<script>
@@ -345,55 +404,46 @@ CooPackageMetrics >> localityUseRatio [
 { #category : 'examples' }
 CooPackageMetrics >> logAnalysis [
 
-| summaryRows methodsPerPackageRows topMethodsRows |
-	summaryRows := {
-		{ 'Packages matched'. self matchedPackages size printString }.
-		{ 'Classes found'. self numberOfClasses printString }.
-		{ 'Average methods per class'. self averageMethodsPerClass printString }.
-		{ 'Average instance variables per class'. self averageInstanceVariablesPerClass printString }.
-		{ 'Class to package ratio'. self classPackageRatio printString }.
-		{ 'Deprecated methods found'. self deprecatedMethods size printString }.
-		{ 'Unique methods'. self uniqueMethods size printString } }.
-	Transcript
-		show: (String streamContents: [ :stream |
-			stream nextPutAll: 'Metric | Value'; cr.
-			stream nextPutAll: '--- | ---'; cr.
-			summaryRows do: [ :row |
-				stream nextPutAll: row first;
-					nextPutAll: ' | ';
-					nextPutAll: row second;
-					cr ] ]);
-			
-		cr.
-		methodsPerPackageRows := OrderedCollection new.
-		self methodsPerPackage keysAndValuesDo: [ :pkgName :methodCount |
-			methodsPerPackageRows add: { pkgName. methodCount printString } ].
-	Transcript
-		show: (String streamContents: [ :stream |
-			stream nextPutAll: 'Package | Methods'; cr.
-			stream nextPutAll: '--- | ---'; cr.
-			methodsPerPackageRows do: [ :row |
-				stream nextPutAll: row first;
-					nextPutAll: ' | ';
-					nextPutAll: row second;
-					cr ] ]);
-		cr.
+	| summaryRows formatValue |
+	formatValue := [ :value |
+		value isNumber
+			ifTrue: [
+				value isInteger
+					ifTrue: [ value printString ]
+					ifFalse: [ value asFloat printShowingDecimalPlaces: 2 ] ]
+			ifFalse: [ value printString ] ].
 		
-	topMethodsRows := OrderedCollection new.
-	(self methodsWithMostLinesOfCode: 5) do: [ :pair |
-		topMethodsRows add: {
-			pair first selector, ' (', pair first methodClass name, ')'.
-			pair second printString } ].
+	summaryRows := {
+		               		{ 'Packages matched'. formatValue value: self matchedPackages size }.
+		{ 'Classes found'. formatValue value: self numberOfClasses }.
+		{ 'Average methods per class'. formatValue value: self averageMethodsPerClass }.
+		{ 'Average instance variables per class'. formatValue value: self averageInstanceVariablesPerClass }.
+		{ 'Class to package ratio'. formatValue value: self classPackageRatio }.
+		{ 'Deprecated methods found'. formatValue value: self deprecatedMethods size }.
+		{ 'Unique methods'. formatValue value: self uniqueMethods size } }.
 	Transcript
 		show: (String streamContents: [ :stream |
-			stream nextPutAll: 'Method | Lines of code'; cr.
-			stream nextPutAll: '--- | ---'; cr.
-			topMethodsRows do: [ :row |
-				stream nextPutAll: row first;
-					nextPutAll: ' | ';
-					nextPutAll: row second;
-					cr ] ]);
-		cr.
+						 stream
+							 nextPutAll: '\begin{tabular}{ll}';
+							 nextPutAll: '\hline';
+							 cr.
+						 stream
+							 nextPutAll: 'Metric & Value \\';
+							 cr.
+						 stream
+							 nextPutAll: '\hline';
+							 cr.
+						 summaryRows do: [ :row |
+								 stream
+									 nextPutAll: row first;
+									 nextPutAll: ' & ';
+									 nextPutAll: row second;
+									 nextPutAll: ' \\';
+									 cr ].
+						 stream
+							 nextPutAll: '\end{tabular}';
+							 cr ]);
+		cr
 ]
 
 { #category : 'examples' }
