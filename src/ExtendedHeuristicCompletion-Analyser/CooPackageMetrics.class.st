@@ -283,7 +283,6 @@ CooPackageMetrics >> gatherAnalysis [
 		  at: #numberOfClasses put: self numberOfClasses;
 		  at: #averageMethodsPerClass put: self averageMethodsPerClass;
 		  at: #averageInstanceVariablesPerClass put: self averageInstanceVariablesPerClass;
-		  at: #methodsPerPackage put: self methodsPerPackage;
 		  at: #classPackageRatio put: self classPackageRatio;
 		  at: #deprecatedMethods put: self deprecatedMethods;
 		  at: #methodsWithMostLinesOfCode put: (self methodsWithMostLinesOfCode: 5);
@@ -346,36 +345,55 @@ CooPackageMetrics >> localityUseRatio [
 { #category : 'examples' }
 CooPackageMetrics >> logAnalysis [
 
-	"Prints or logs all key analysis results to Transcript (or uses traceCr, etc.)"
-
-	Transcript show: self matchedPackages size printString, ' packages matched.'; cr.
-	Transcript show: self numberOfClasses printString, ' classes found.'; cr.
-
-	Transcript show: 'Average methods per class: ', self averageMethodsPerClass printString; cr.
-	Transcript show: 'Average instance variables per class: ',
-		self averageInstanceVariablesPerClass printString;
+| summaryRows methodsPerPackageRows topMethodsRows |
+	summaryRows := {
+		{ 'Packages matched'. self matchedPackages size printString }.
+		{ 'Classes found'. self numberOfClasses printString }.
+		{ 'Average methods per class'. self averageMethodsPerClass printString }.
+		{ 'Average instance variables per class'. self averageInstanceVariablesPerClass printString }.
+		{ 'Class to package ratio'. self classPackageRatio printString }.
+		{ 'Deprecated methods found'. self deprecatedMethods size printString }.
+		{ 'Unique methods'. self uniqueMethods size printString } }.
+	Transcript
+		show: (String streamContents: [ :stream |
+			stream nextPutAll: 'Metric | Value'; cr.
+			stream nextPutAll: '--- | ---'; cr.
+			summaryRows do: [ :row |
+				stream nextPutAll: row first;
+					nextPutAll: ' | ';
+					nextPutAll: row second;
+					cr ] ]);
+			
 		cr.
-
-	Transcript show: 'Methods per package:'; cr.
-	self methodsPerPackage keysAndValuesDo: [ :pkgName :methodCount |
-		Transcript show: pkgName, ': ', methodCount printString; cr ].
-
-	Transcript show: 'Class to package ratio: ', self classPackageRatio printString; cr.
-
-	Transcript show: self deprecatedMethods size printString, ' deprecated methods found.'; cr.
-
-	Transcript show: 'Top 5 methods with most lines of code:'; cr.
+		methodsPerPackageRows := OrderedCollection new.
+		self methodsPerPackage keysAndValuesDo: [ :pkgName :methodCount |
+			methodsPerPackageRows add: { pkgName. methodCount printString } ].
+	Transcript
+		show: (String streamContents: [ :stream |
+			stream nextPutAll: 'Package | Methods'; cr.
+			stream nextPutAll: '--- | ---'; cr.
+			methodsPerPackageRows do: [ :row |
+				stream nextPutAll: row first;
+					nextPutAll: ' | ';
+					nextPutAll: row second;
+					cr ] ]);
+		cr.
+		
+	topMethodsRows := OrderedCollection new.
 	(self methodsWithMostLinesOfCode: 5) do: [ :pair |
-		Transcript
-			show: pair first selector;
-			show: ' (';
-			show: pair first methodClass name;
-			show: '): ';
-			show: pair second printString;
-			show: ' lines';
-			cr ].
-
-	Transcript show: 'Unique methods: ', self uniqueMethods size printString; cr.
+		topMethodsRows add: {
+			pair first selector, ' (', pair first methodClass name, ')'.
+			pair second printString } ].
+	Transcript
+		show: (String streamContents: [ :stream |
+			stream nextPutAll: 'Method | Lines of code'; cr.
+			stream nextPutAll: '--- | ---'; cr.
+			topMethodsRows do: [ :row |
+				stream nextPutAll: row first;
+					nextPutAll: ' | ';
+					nextPutAll: row second;
+					cr ] ]);
+		cr.
 ]
 
 { #category : 'examples' }
