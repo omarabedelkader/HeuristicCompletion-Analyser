@@ -45,11 +45,19 @@ CooPackageMetrics class >> all [
 		
 			'Roassal-Animation-Tests'. 'Roassal-BaselineMap-Tests'. 'Roassal-Chart-Tests'. 'Roassal-Exporters-Tests'.
 		   'Roassal-Global-Tests'. 'Roassal-Inspector-Tests'. 'Roassal-Interaction-Tests'. 'Roassal-LayoutStudio-Tests'.
-		   'Roassal-Layouts-Tests'. 'Roassal-Shapes-Tests'. 'Roassal-Spec-Tests'. 'Roassal-SVG-Tests'. 'Roassal-UML-Tests'
+		   'Roassal-Layouts-Tests'. 'Roassal-Shapes-Tests'. 'Roassal-Spec-Tests'. 'Roassal-SVG-Tests'. 'Roassal-UML-Tests'.
 		
 		
+		'Seaside-Ajaxifier-Core'. 'Seaside-Canvas'. 'Seaside-Component'. 'Seaside-Continuation'. 'Seaside-Core'. 'Seaside-Development'.
+		   'Seaside-Email'. 'Seaside-Environment'. 'Seaside-Examples'. 'Seaside-Flow'. 'Seaside-JSON-Core'. 'Seaside-Pharo-Canvas'.
+		   'Seaside-Pharo-Continuation'. 'Seaside-Pharo-Core'. 'Seaside-Pharo-Development'. 'Seaside-Pharo-Email'. 'Seaside-Pharo-Environment'.
+		   'Seaside-Pharo-Flow'. 'Seaside-Pharo-JSON-Core'. 'Seaside-Pharo-Tools-Web'. 'Seaside-Pharo-Welcome'. 'Seaside-REST-Core'.
+		   'Seaside-RenderLoop'. 'Seaside-Session'. 'Seaside-Tools-Core'. 'Seaside-Tools-Web'. 'Seaside-Welcome'. 'Seaside-Widgets'.
+		   'Seaside-Zinc-Core'. 'Seaside-Zinc-Pharo' .
 		
-		
+		'Seaside-Tests-Canvas'. 'Seaside-Tests-Component'. 'Seaside-Tests-Core'. 'Seaside-Tests-Environment'.
+		   'Seaside-Tests-Flow'. 'Seaside-Tests-Functional'. 'Seaside-Tests-Pharo-Canvas'. 'Seaside-Tests-Pharo-Continuation'.
+		   'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'. 'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session'
 		
 		
 		 }
@@ -359,29 +367,6 @@ CooPackageMetrics class >> referenceCountFor: classNames in: analyser [
 
 	^ classNames inject: 0 into: [ :sum :className |
 		  sum + (analyser referencesForClass: className) size ]
-]
-
-{ #category : 'TO-DELETE' }
-CooPackageMetrics class >> seaside [
-
-	<script>
-	^ (self runForPackageNames:
-		   { 'Seaside-Ajaxifier-Core'. 'Seaside-Canvas'. 'Seaside-Component'. 'Seaside-Continuation'. 'Seaside-Core'. 'Seaside-Development'.
-		   'Seaside-Email'. 'Seaside-Environment'. 'Seaside-Examples'. 'Seaside-Flow'. 'Seaside-JSON-Core'. 'Seaside-Pharo-Canvas'.
-		   'Seaside-Pharo-Continuation'. 'Seaside-Pharo-Core'. 'Seaside-Pharo-Development'. 'Seaside-Pharo-Email'. 'Seaside-Pharo-Environment'.
-		   'Seaside-Pharo-Flow'. 'Seaside-Pharo-JSON-Core'. 'Seaside-Pharo-Tools-Web'. 'Seaside-Pharo-Welcome'. 'Seaside-REST-Core'.
-		   'Seaside-RenderLoop'. 'Seaside-Session'. 'Seaside-Tools-Core'. 'Seaside-Tools-Web'. 'Seaside-Welcome'. 'Seaside-Widgets'.
-		   'Seaside-Zinc-Core'. 'Seaside-Zinc-Pharo' }) inspect
-]
-
-{ #category : 'TO-DELETE' }
-CooPackageMetrics class >> seasideTests [
-
-	<script>
-	^ (self runForPackageNames:
-		   { 'Seaside-Tests-Canvas'. 'Seaside-Tests-Component'. 'Seaside-Tests-Core'. 'Seaside-Tests-Environment'.
-		   'Seaside-Tests-Flow'. 'Seaside-Tests-Functional'. 'Seaside-Tests-Pharo-Canvas'. 'Seaside-Tests-Pharo-Continuation'.
-		   'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'. 'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session' }) inspect
 ]
 
 { #category : 'examples' }
