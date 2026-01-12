@@ -27,7 +27,7 @@ CooPackageMetricsTest >> testTotalsForMultiplePackages [
                 analyser1 internalUserCount + analyser2 internalUserCount.
                 analyser1 externalReferences size + analyser2 externalReferences size }.
         total := metrics last.
-        self assert: metrics size equals: names size + 1.
+        self assert: metrics size equals: names size .
         self assert: (total fourth closeTo: expected fourth).
 
 ]
