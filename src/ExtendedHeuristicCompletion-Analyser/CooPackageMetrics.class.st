@@ -24,7 +24,7 @@ Class {
 CooPackageMetrics class >> all [
 
 	<script>
-	^ self runForPackageNames:
+	^ self logTablesForPackageNames:
 		  { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
 		  'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'. 'Spec2-Commands'.
 		  'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'. 'Spec2-Layout'. 'Spec2-ListView'.
@@ -55,6 +55,32 @@ CooPackageMetrics class >> all [
 		 }
 ]
 
+{ #category : 'examples' }
+CooPackageMetrics class >> averageInstanceVariablesFor: classes [
+
+	| instVarCounts |
+	instVarCounts := classes collect: [ :class | class instVarNames size ].
+	^ instVarCounts isEmpty
+		  ifTrue: [ 0.0 ]
+		  ifFalse: [ instVarCounts sum / instVarCounts size asFloat ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> deprecatedMethodsFor: pkg [
+
+	| isDeprecated |
+	isDeprecated := [ :method | method pragmas anySatisfy: [ :pr | pr selector = #deprecated ] ].
+	^ (pkg methods select: isDeprecated) size
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> formatNumber: value [
+
+	(value isNumber and: [ value isInteger not ])
+		ifTrue: [ ^ value printShowingDecimalPlaces: 2 ].
+	^ value
+]
+
 { #category : 'TO-DELETE' }
 CooPackageMetrics class >> iceberg [
 
@@ -73,6 +99,134 @@ CooPackageMetrics class >> icebergTest [
 	^ (self runForPackageNames:
 		   { 'Iceberg-Plugin-Migration-Tests'. 'Iceberg-Tests'. 'Iceberg-Tests-MetacelloIntegration'.
 		   'Iceberg-TipUI-SnapshotBrowser-Tests'. 'Iceberg-UI-Tests' }) inspect
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> latexEscape: aString [
+
+	| escaped |
+	escaped := aString asString.
+	escaped := escaped copyReplaceAll: '\' with: '\\'.
+	escaped := escaped copyReplaceAll: '&' with: '\&'.
+	escaped := escaped copyReplaceAll: '%' with: '\%'.
+	escaped := escaped copyReplaceAll: '#' with: '\#'.
+	escaped := escaped copyReplaceAll: '_' with: '\_'.
+	escaped := escaped copyReplaceAll: '{' with: '\{'.
+	escaped := escaped copyReplaceAll: '}' with: '\}'.
+	^ escaped
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> logLatexTableWithTitle: title headers: headers rows: rows [
+
+	| columnSpec |
+	columnSpec := 'l' , (String new: headers size - 1 withAll: $r).
+	Transcript
+		show: '% ' , title;
+		cr;
+		show: '\begin{tabular}{' , columnSpec , '}';
+		cr;
+		show: '\hline';
+		cr;
+		show: (String streamContents: [ :stream |
+					 headers
+						 do: [ :header | stream nextPutAll: header ]
+						 separatedBy: [ stream nextPutAll: ' & ' ].
+					 stream nextPutAll: ' \\' ]);
+		cr;
+		show: '\hline';
+		cr.
+	rows do: [ :row |
+		Transcript
+			show: (String streamContents: [ :stream |
+						 row
+							 do: [ :cell | stream nextPutAll: cell asString ]
+							 separatedBy: [ stream nextPutAll: ' & ' ].
+						 stream nextPutAll: ' \\' ]);
+			cr ].
+	Transcript
+		show: '\hline';
+		cr;
+		show: '\end{tabular}';
+		cr;
+		cr
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> logTablesForPackageNames: packageNames [
+
+	| rows packageCount |
+	packageCount := packageNames size.
+	rows := packageNames collect: [ :name | self packageMetricsForName: name packageCount: packageCount ].
+	self logLatexTableWithTitle: 'Package Scope \& Size Metrics'
+		headers: { 'Package'. 'M_{pkg}'. 'C_{tot}'. 'C_{def}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #packageCount.
+					 row at: #totalClasses.
+					 row at: #definedClasses } ]).
+	self logLatexTableWithTitle: 'Class-Level Structural Metrics'
+		headers: { 'Package'. 'M_{tot}'. 'AM_{cls}'. 'AI_{cls}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #totalMethods.
+					 row at: #averageMethodsPerClass.
+					 row at: #averageInstanceVariablesPerClass } ]).
+	self logLatexTableWithTitle: 'Package and Design Granularity Metrics'
+		headers: { 'Package'. 'R_{CP}'. 'R_{CM}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #classPackageRatio.
+					 row at: #classMethodRatio } ]).
+	self logLatexTableWithTitle: 'Method-Level Quality and Maintenance Metrics'
+		headers: { 'Package'. 'M_{dep}'. 'U_{sel}'. 'M_{LOC}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #deprecatedMethods.
+					 row at: #uniqueMethods.
+					 row at: #methodsWithMostLinesOfCode } ]).
+	self logLatexTableWithTitle: 'Locality and Dependency Metrics'
+		headers: { 'Package'. 'R_{def}'. 'R_{use}'. 'R_{du}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #localityDefinitionRatio.
+					 row at: #localityUseRatio.
+					 row at: #localityDefUseRatio } ]).
+	self logLatexTableWithTitle: 'Package Usage and Dependency Direction Metrics'
+		headers: { 'Package'. 'R_{int}'. 'U_{int}'. 'R_{ext}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #internalUserRatio.
+					 row at: #internalUserCount.
+					 row at: #externalReferenceCount } ]).
+	self logLatexTableWithTitle: 'Code Completion Vocabulary Metrics'
+		headers: { 'Package'. 'V'. 'R_{V}^{int}'. 'R_{V}^{ext}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #completionVocabularySize.
+					 row at: #completionVocabularyInternalRatio.
+					 row at: #completionVocabularyExternalRatio } ]).
+	self logLatexTableWithTitle: 'Code Completion Uncertainty Metrics'
+		headers: { 'Package'. 'A_{comp}'. 'H_{comp}' }
+		rows: (rows collect: [ :row |
+					 { row at: #name.
+					 row at: #completionAmbiguity.
+					 row at: #completionEntropy } ]).
+	^ rows
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> longestMethodSummaryFor: pkg [
+
+	| methodsWithLines top |
+	methodsWithLines := pkg methods collect: [ :method |
+		                   { method. method sourceCode lines size } ].
+	methodsWithLines isEmpty ifTrue: [ ^ '-' ].
+	top := methodsWithLines
+		       sort: [ :a :b | a second > b second ];
+		       first.
+	^ self latexEscape:
+		  (top first methodClass name , '>>' , top first selector printString , ' (' , top second printString , ')')
 ]
 
 { #category : 'TO-DELETE' }
@@ -111,6 +265,102 @@ CooPackageMetrics class >> mooseTests [
 		   'MooseIDE-Tagging-Tests'. 'MooseIDE-Tests' }) inspect
 ]
 
+{ #category : 'examples' }
+CooPackageMetrics class >> packageMetricsForName: packageName packageCount: packageCount [
+
+	| pkg analyser totalClasses definedClasses totalMethods averageMethods averageInstVars classPackageRatio classMethodRatio deprecatedCount uniqueCount longestMethod localDefs externalDefs localUses externalUses |
+	pkg := PackageOrganizer default packageNamed: packageName.
+	pkg ifNil: [
+		^ Dictionary new
+			  at: #name put: (self latexEscape: packageName);
+			  at: #packageCount put: packageCount;
+			  at: #totalClasses put: 0;
+			  at: #definedClasses put: 0;
+			  at: #totalMethods put: 0;
+			  at: #averageMethodsPerClass put: '0.00';
+			  at: #averageInstanceVariablesPerClass put: '0.00';
+			  at: #classPackageRatio put: '0.00';
+			  at: #classMethodRatio put: '0.00';
+			  at: #deprecatedMethods put: 0;
+			  at: #uniqueMethods put: 0;
+			  at: #methodsWithMostLinesOfCode put: '-';
+			  at: #localityDefinitionRatio put: '0.00';
+			  at: #localityUseRatio put: '0.00';
+			  at: #localityDefUseRatio put: '0.00';
+			  at: #internalUserRatio put: '0.00';
+			  at: #internalUserCount put: 0;
+			  at: #externalReferenceCount put: 0;
+			  at: #completionVocabularySize put: 0;
+			  at: #completionVocabularyInternalRatio put: '0.00';
+			  at: #completionVocabularyExternalRatio put: '0.00';
+			  at: #completionAmbiguity put: '0.00';
+			  at: #completionEntropy put: '0.00';
+			  yourself ].
+	analyser := PackageAnalyser new.
+	analyser runAnalysisForPackage: pkg.
+
+	totalClasses := pkg classes size.
+	definedClasses := pkg definedClasses size.
+	totalMethods := pkg methods size.
+	averageMethods := totalClasses = 0
+		ifTrue: [ 0.0 ]
+		ifFalse: [ totalMethods / totalClasses asFloat ].
+	averageInstVars := self averageInstanceVariablesFor: pkg definedClasses.
+	classPackageRatio := totalClasses asFloat.
+	classMethodRatio := totalMethods = 0
+		ifTrue: [ 0.0 ]
+		ifFalse: [ totalClasses / totalMethods asFloat ].
+	deprecatedCount := self deprecatedMethodsFor: pkg.
+	uniqueCount := self uniqueMethodsFor: pkg.
+	longestMethod := self longestMethodSummaryFor: pkg.
+
+	localDefs := analyser definedClassNames size.
+	externalDefs := analyser externalReferences size.
+	localUses := self referenceCountFor: analyser internalClassReferences in: analyser.
+	externalUses := self referenceCountFor: analyser externalReferences in: analyser.
+
+	^ Dictionary new
+		  at: #name put: (self latexEscape: packageName);
+		  at: #packageCount put: packageCount;
+		  at: #totalClasses put: totalClasses;
+		  at: #definedClasses put: definedClasses;
+		  at: #totalMethods put: totalMethods;
+		  at: #averageMethodsPerClass put: (self formatNumber: averageMethods);
+		  at: #averageInstanceVariablesPerClass put: (self formatNumber: averageInstVars);
+		  at: #classPackageRatio put: (self formatNumber: classPackageRatio);
+		  at: #classMethodRatio put: (self formatNumber: classMethodRatio);
+		  at: #deprecatedMethods put: deprecatedCount;
+		  at: #uniqueMethods put: uniqueCount;
+		  at: #methodsWithMostLinesOfCode put: longestMethod;
+		  at: #localityDefinitionRatio put: (self formatNumber: (self ratioFor: localDefs denominator: localDefs + externalDefs));
+		  at: #localityUseRatio put: (self formatNumber: (self ratioFor: localUses denominator: localUses + externalUses));
+		  at: #localityDefUseRatio put: (self formatNumber: (self ratioFor: localUses denominator: localDefs));
+		  at: #internalUserRatio put: (self formatNumber: analyser internalUserRatio);
+		  at: #internalUserCount put: analyser internalUserCount;
+		  at: #externalReferenceCount put: analyser externalReferences size;
+		  at: #completionVocabularySize put: analyser completionVocabularySize;
+		  at: #completionVocabularyInternalRatio put: (self formatNumber: analyser completionVocabularyInternalRatio);
+		  at: #completionVocabularyExternalRatio put: (self formatNumber: analyser completionVocabularyExternalRatio);
+		  at: #completionAmbiguity put: (self formatNumber: analyser ambiguity);
+		  at: #completionEntropy put: (self formatNumber: analyser completionEntropy);
+		  yourself
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> ratioFor: numerator denominator: denominator [
+
+	^ denominator = 0
+		  ifTrue: [ 0.0 ]
+		  ifFalse: [ numerator / denominator asFloat ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> referenceCountFor: classNames in: analyser [
+
+	^ classNames inject: 0 into: [ :sum :className |
+		  sum + (analyser referencesForClass: className) size ]
+]
+
 { #category : 'TO-DELETE' }
 CooPackageMetrics class >> seaside [
 
@@ -132,6 +382,18 @@ CooPackageMetrics class >> seasideTests [
 		   { 'Seaside-Tests-Canvas'. 'Seaside-Tests-Component'. 'Seaside-Tests-Core'. 'Seaside-Tests-Environment'.
 		   'Seaside-Tests-Flow'. 'Seaside-Tests-Functional'. 'Seaside-Tests-Pharo-Canvas'. 'Seaside-Tests-Pharo-Continuation'.
 		   'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'. 'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session' }) inspect
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> uniqueMethodsFor: pkg [
+
+	| methodCounts |
+	methodCounts := Dictionary new.
+	pkg methods do: [ :method |
+		methodCounts
+			at: method selector
+			put: (methodCounts at: method selector ifAbsent: [ 0 ]) + 1 ].
+	^ (methodCounts keys select: [ :selector | (methodCounts at: selector) = 1 ]) size
 ]
 
 { #category : 'examples' }
