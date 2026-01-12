@@ -1,61 +1,21 @@
 "
-```smalltalk
-
-| packageNames rows totClasses totDefined totMethods packageCount |
-packageNames := #(
-    'Iceberg'
-    'Iceberg-Libgit'
-    'Iceberg-Libgit-Filetree'
-    'Iceberg-Libgit-Tonel'
-    'Iceberg-Metacello-Integration'
-    'Iceberg-Plugin'
-    'Iceberg-Plugin-Github'
-    'Iceberg-Plugin-Migration'
-    'Iceberg-Plugin-Pharo'
-    'Iceberg-TipUI'
-    'Iceberg-TipUI-SnapShotBrowser'
-).
-
-rows := packageNames collect: [ :name |
-	| pkg |
-	pkg := PackageOrganizer default packageNamed: name.
-	pkg ifNil: [
-		self inform: 'Package ', name, ' is not loaded.'.
-		^{ name . 0 . 0 . 0 }   ""keep list lengths equal""
-	] ifNotNil: [
-		{
-			name .
-			pkg classes size .
-			pkg definedClasses size .
-			pkg methods size
-		}
-	]
-].
-
-totClasses := rows inject: 0 into: [:sum :r | sum + (r at: 2)].
-totDefined := rows inject: 0 into: [:sum :r | sum + (r at: 3)].
-totMethods := rows inject: 0 into: [:sum :r | sum + (r at: 4)].
-
-rows := rows copyWith: { 'TOTAL' . totClasses . totDefined . totMethods }.
-Transcript
-	cr; show: 'Package'; tab; show: 'Classes'; tab; show: 'Defined'; tab; show: 'Methods'; cr.
-rows do: [:row |
-	Transcript
-		show: row first; tab;
-		show: row second; tab;
-		show: row third; tab;
-		show: row fourth; cr ].
-
-rows inspect.
-
-""How many packages?""
-packageCount := packageNames size.   ""← **this is the number you want**""
-
-```
+Some class
 "
 Class {
 	#name : 'CooPackageMetrics',
 	#superclass : 'CooPackage',
+	#instVars : [
+		'packagePatterns',
+		'matchedPackages',
+		'localDefinitions',
+		'externalDefinitions',
+		'localUses',
+		'externalUses',
+		'originalLocalDefinitions',
+		'originalExternalDefinitions',
+		'originalLocalUses',
+		'originalExternalUses'
+	],
 	#category : 'ExtendedHeuristicCompletion-Analyser',
 	#package : 'ExtendedHeuristicCompletion-Analyser'
 }
@@ -157,6 +117,33 @@ CooPackageMetrics class >> roassalTests [
 ]
 
 { #category : 'examples' }
+CooPackageMetrics class >> runAllForPackageNames: packageNames [
+	| rows reporter |
+	rows := super runForPackageNames: packageNames.
+	reporter := self new.
+	reporter packagePatterns: packageNames.
+	reporter computeMatchedPackages.
+	^ Dictionary new
+		at: #packageMetrics put: rows;
+		at: #vocReporter put: reporter gatherAnalysis;
+		yourself
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> runAllOnPatterns: patternList [
+
+	"Creates a CooPackageMetrics, sets the patterns, computes the matched packages,
+	collects the results in a Dictionary, and returns it."
+
+	| reporter results |
+	reporter := self new.
+	reporter packagePatterns: patternList.
+	reporter computeMatchedPackages.
+	results := reporter gatherAnalysis.
+	^ results
+]
+
+{ #category : 'examples' }
 CooPackageMetrics class >> seaside [
 
 	<script>
@@ -183,12 +170,11 @@ CooPackageMetrics class >> seasideTests [
 CooPackageMetrics class >> spec [
 
 	<script>
-	^ (self runForPackageNames:
-		   { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
-		   'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'.
-		   'Spec2-Commands'. 'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'.
-		   'Spec2-Layout'. 'Spec2-ListView'. 'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission' })
-		  inspect
+	^ self runAllForPackageNames:
+		  { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
+		  'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'. 'Spec2-Commands'.
+		  'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'. 'Spec2-Layout'. 'Spec2-ListView'.
+		  'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission' }
 ]
 
 { #category : 'examples' }
@@ -199,4 +185,320 @@ CooPackageMetrics class >> specTests [
 		   { 'Spec2-Adapters-Morphic-Tests'. 'Spec2-Adapters-Stub'. 'Spec2-Backend-Tests'. 'Spec2-Code-Backend-Tests'.
 		   'Spec2-Code-Diff-Tests'. 'Spec2-Code-Tests'. 'Spec2-Commander2-Tests'. 'Spec2-Dialogs-Tests'. 'Spec2-Morphic-Backend-Tests'.
 		   'Spec2-Morphic-Tests'. 'Spec2-Tests' }) inspect
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> argestClassesByMethodCount: topN [
+
+	| classSizePairs sorted |
+	classSizePairs := self matchedPackages flatCollect: [ :pkg |
+		                  pkg definedClasses collect: [ :class |
+			                  { class -> class selectors size } ] ].
+	sorted := classSizePairs asArray sort: [ :a :b | a second > b second ].
+	^ sorted first: (topN min: sorted size)
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> averageInstanceVariablesPerClass [
+
+	| instVarCounts |
+	instVarCounts := self matchedPackages flatCollect: [ :pkg |
+		                 pkg definedClasses collect: [ :class | class instVarNames size ] ].
+	^ instVarCounts isEmpty
+		  ifTrue: [ 0 ]
+		  ifFalse: [ instVarCounts sum / instVarCounts size ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> averageMethodsPerClass [
+
+	^ self numberOfClasses = 0
+		  ifTrue: [ 0 ]
+		  ifFalse: [ self totalNumberOfMethods asFloat / self numberOfClasses ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> classPackageRatio [
+
+	^ (self numberOfClasses / self matchedPackages size) asFloat
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> classToMethodRatio [
+
+	| totalMethods totalClasses |
+	totalMethods := 0.
+	self matchedPackages do: [ :pkg | totalMethods := totalMethods + pkg methods size ].
+	totalClasses := self numberOfClasses.
+
+	^ totalMethods = 0
+		  ifTrue: [ 0 ]
+		  ifFalse: [ totalClasses asFloat / totalMethods asFloat ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> computeMatchedPackages [
+
+	self packageOrganizer packageNamesDo: [ :pkgName |
+		(packagePatterns anySatisfy: [ :pat | pat match: pkgName ]) ifTrue: [
+			matchedPackages add: (self packageOrganizer packageNamed: pkgName) ] ].
+	^ matchedPackages
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> computedMatchedPatterns [
+
+	self packageOrganizer packageNamesDo: [ :each |
+		(packagePatterns anySatisfy: [ :pat | pat match: each ]) ifTrue: [
+			matchedPackages add: (self packageOrganizer packageNamed: each) ] ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> deprecatedMethods [
+
+	| isDeprecated |
+	isDeprecated := [ :method | method pragmas anySatisfy: [ :pr | pr selector = #deprecated ] ].
+	^ self matchedPackages flatCollect: [ :pkg | pkg methods select: isDeprecated ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> externalDefinitions: aCollection [
+	externalDefinitions := aCollection
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> externalUses: aCollection [
+	externalUses := aCollection
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> gatherAnalysis [
+	"Gather all relevant analysis in a Dictionary and return it."
+
+	^ Dictionary new
+		  at: #matchedPackages put: self matchedPackages;
+		  at: #numberOfPackages put: self matchedPackages size;
+		  at: #numberOfClasses put: self numberOfClasses;
+		  at: #averageMethodsPerClass put: self averageMethodsPerClass;
+		  at: #averageInstanceVariablesPerClass put: self averageInstanceVariablesPerClass;
+		  at: #methodsPerPackage put: self methodsPerPackage;
+		  at: #classPackageRatio put: self classPackageRatio;
+		  at: #deprecatedMethods put: self deprecatedMethods;
+		  at: #methodsWithMostLinesOfCode put: (self methodsWithMostLinesOfCode: 5);
+		  at: #uniqueMethods put: self uniqueMethods;
+		  yourself
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> initialize [
+
+	super initialize.
+	matchedPackages := OrderedCollection new.
+	localDefinitions := OrderedCollection new.
+	externalDefinitions := OrderedCollection new.
+	localUses := OrderedCollection new.
+	externalUses := OrderedCollection new.
+	originalLocalDefinitions := OrderedCollection new.
+	originalExternalDefinitions := OrderedCollection new.
+	originalLocalUses := OrderedCollection new.
+	originalExternalUses := OrderedCollection new.
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> largestClassesByMethodCount: topN [
+
+	| classSizePairs sorted |
+	classSizePairs := self matchedPackages flatCollect: [ :pkg |
+		                  pkg definedClasses collect: [ :class | { class -> class selectors size } ] ].
+	sorted := classSizePairs asArray sort: [ :a :b | a second > b second ].
+	^ sorted first: (topN min: sorted size)
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> localDefinitions: aCollection [
+	localDefinitions := aCollection
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> localUses: aCollection [
+	localUses := aCollection
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> localityDefUseRatio [
+
+	^ self percent: localUses size / localDefinitions size
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> localityDefinitionRatio [
+
+	^ self percent: localDefinitions size / (localDefinitions size + externalDefinitions size)
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> localityUseRatio [
+	^ self percent: (localUses size / (localUses size + externalUses size))
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> logAnalysis [
+
+	"Prints or logs all key analysis results to Transcript (or uses traceCr, etc.)"
+
+	Transcript show: self matchedPackages size printString, ' packages matched.'; cr.
+	Transcript show: self numberOfClasses printString, ' classes found.'; cr.
+
+	Transcript show: 'Average methods per class: ', self averageMethodsPerClass printString; cr.
+	Transcript show: 'Average instance variables per class: ',
+		self averageInstanceVariablesPerClass printString;
+		cr.
+
+	Transcript show: 'Methods per package:'; cr.
+	self methodsPerPackage keysAndValuesDo: [ :pkgName :methodCount |
+		Transcript show: pkgName, ': ', methodCount printString; cr ].
+
+	Transcript show: 'Class to package ratio: ', self classPackageRatio printString; cr.
+
+	Transcript show: self deprecatedMethods size printString, ' deprecated methods found.'; cr.
+
+	Transcript show: 'Top 5 methods with most lines of code:'; cr.
+	(self methodsWithMostLinesOfCode: 5) do: [ :pair |
+		Transcript
+			show: pair first selector;
+			show: ' (';
+			show: pair first methodClass name;
+			show: '): ';
+			show: pair second printString;
+			show: ' lines';
+			cr ].
+
+	Transcript show: 'Unique methods: ', self uniqueMethods size printString; cr.
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> matchedPackages [
+
+	^ matchedPackages
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> matchedPackages: anObject [
+
+	matchedPackages := anObject
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> methodNames [
+
+	| results |
+	results := Set new.
+	matchedPackages do: [ :each | results addAll: each selectors ].
+	^ results
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> methodsPerPackage [
+
+	| dict |
+	dict := Dictionary new.
+	self matchedPackages do: [ :pkg | dict at: pkg name put: pkg methods size ].
+	^ dict
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> methodsWithMostLinesOfCode: n [
+
+	| methodsWithLines |
+	methodsWithLines := self matchedPackages flatCollect: [ :pkg |
+		                   pkg methods collect: [ :method | { method. method sourceCode lines size } ] ].
+	^ methodsWithLines
+		  sort: [ :a :b | a second > b second ];
+		  first: (n min: methodsWithLines size)
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> numberOfClasses [
+
+	^ self totalNumberOfClasses
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> packageOrganizer [
+
+	^ PackageOrganizer default
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> packagePatterns: aCollection [
+
+	packagePatterns := aCollection
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> percent: aNumber [
+
+	^ aNumber asFloat round: 2
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> printOn: aStream [
+
+	aStream << 'locality definition ratio: '.
+	self localityDefinitionRatio printOn: aStream.
+	aStream << ' ('.
+	localDefinitions size printOn: aStream.
+	aStream << '/'.
+	(externalDefinitions size + localDefinitions size) printOn: aStream.
+	aStream << ')'.
+	aStream cr.
+
+	aStream << 'locality use ratio: '.
+	self localityDefinitionRatio printOn: aStream.
+	aStream << ' ('.
+	localUses size printOn: aStream.
+	aStream << '/'.
+	(localUses size + externalUses size) printOn: aStream.
+	aStream << ')'.
+	aStream cr.
+
+	aStream << 'local def/use ratio: '.
+	self localityDefUseRatio printOn: aStream.
+	aStream << ' ('.
+	localUses size printOn: aStream.
+	aStream << '/'.
+	localDefinitions size printOn: aStream.
+	aStream << ')'
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> topPackagesByClassCount: n [
+
+	^ (self matchedPackages sorted: [ :a :b | a definedClasses size > b definedClasses size ])
+		  first: (n min: self matchedPackages size)
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> totalNumberOfClasses [
+
+	^ self matchedPackages inject: 0 into: [ :sum :pkg | sum + pkg definedClasses size ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> totalNumberOfMethods [
+
+	^ self matchedPackages inject: 0 into: [ :sum :pkg | sum + pkg methods size ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics >> uniqueMethods [
+
+	| methodCounts |
+	methodCounts := Dictionary new.
+	self matchedPackages do: [ :pkg |
+		pkg methods do: [ :method |
+			methodCounts
+				at: method selector
+				put: (methodCounts at: method selector ifAbsent: [ 0 ]) + 1 ] ].
+	^ methodCounts keys select: [ :selector | (methodCounts at: selector) = 1 ]
 ]

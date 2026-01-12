@@ -1,3 +1,6 @@
+"
+I'm a class that list the methods name (selectors) inside a list of packages
+"
 Class {
 	#name : 'CooPackageMethodLister',
 	#superclass : 'CooPackage',

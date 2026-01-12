@@ -5,19 +5,6 @@ I am an Analyser, responsible for analyzing how classes are defined
  provides relevant metrics.
 
 
-
-```smalltalk
-analyser := PackageAnalyser new.
-targetPackage := PackageOrganizer default packageNamed: 'NECompletion'.
-analyser runAnalysisForPackage: targetPackage.
-internalRatio := analyser internalUserRatio.
-references := analyser referencesForClass: #CompletionSorter.
-analyser definedClassNames.
-analyser internalUserRatio.
-analyser allReferencedClasses difference: analyser definedClassNames.
-
-
-
 "
 Class {
 	#name : 'PackageAnalyser',

@@ -15,14 +15,12 @@ VocabularyMetricTest >> percent: aFraction [
 VocabularyMetricTest >> testDefUsesRatio [
 
 	| vm |
-	vm := VocabularyMetricer new.
-	vm localDefinitions: #(A B C D E F).
-	vm externalDefinitions: #(EA EB EC ED EF EG EH EI EJ EK).
-	
-	"here we have only A B C that are used"
-	vm localUses: #(A B C).
-	vm externalUses: #(EA EB EC ED EF). 
-	
+	vm := CooPackageMetrics new.
+	vm localDefinitions: #( A B C D E F ).
+	vm externalDefinitions: #( EA EB EC ED EF EG EH EI EJ EK ). "here we have only A B C that are used"
+	vm localUses: #( A B C ).
+	vm externalUses: #( EA EB EC ED EF ).
+
 	self assert: vm localityDefUseRatio equals: (self percent: 3 / 6)
 ]
 
@@ -30,10 +28,10 @@ VocabularyMetricTest >> testDefUsesRatio [
 VocabularyMetricTest >> testDefinitionRatio [
 
 	| vm |
-	vm := VocabularyMetricer new.
-	vm localDefinitions: #(A B C D E F).
-	vm externalDefinitions: #(EA EB EC ED EF EG EH EI EJ EK).
-	
+	vm := CooPackageMetrics new.
+	vm localDefinitions: #( A B C D E F ).
+	vm externalDefinitions: #( EA EB EC ED EF EG EH EI EJ EK ).
+
 	self assert: vm localityDefinitionRatio equals: (self percent: 6 / 16)
 ]
 
@@ -41,18 +39,13 @@ VocabularyMetricTest >> testDefinitionRatio [
 VocabularyMetricTest >> testPrinting [
 
 	| vm |
-	vm := VocabularyMetricer new.
-	vm localDefinitions: #(A B C D E F).
-	vm externalDefinitions: #(EA EB EC ED EF EG EH EI EJ EK).
-	
-	"here we have only A B C that are used"
-	vm localUses: #(A B C).
-	vm externalUses: #(EA EB EC ED EF). 
-	
-	self 
-		assert: vm printString 
-		equals: 
-'locality definition ratio: 0.38 (6/16)
+	vm := CooPackageMetrics new.
+	vm localDefinitions: #( A B C D E F ).
+	vm externalDefinitions: #( EA EB EC ED EF EG EH EI EJ EK ). "here we have only A B C that are used"
+	vm localUses: #( A B C ).
+	vm externalUses: #( EA EB EC ED EF ).
+
+	self assert: vm printString equals: 'locality definition ratio: 0.38 (6/16)
 locality use ratio: 0.38 (3/8)
 local def/use ratio: 0.5 (3/6)'
 ]
@@ -61,15 +54,10 @@ local def/use ratio: 0.5 (3/6)'
 VocabularyMetricTest >> testUsesRatio [
 
 	| vm |
-	vm := VocabularyMetricer new.
-	vm localDefinitions: #(A B C D E F).
-	vm externalDefinitions: #(EA EB EC ED EF EG EH EI EJ EK).
-	
-	"here we have only A B C that are used"
-	vm localUses: #(A B C).
-	vm externalUses: #(EA EB EC ED EF). 
-	
-	"this measurre the ratio of local vs. global use"
-	self assert: vm localityUseRatio equals: (self percent: 3 / 8).
-	
+	vm := CooPackageMetrics new.
+	vm localDefinitions: #( A B C D E F ).
+	vm externalDefinitions: #( EA EB EC ED EF EG EH EI EJ EK ). "here we have only A B C that are used"
+	vm localUses: #( A B C ).
+	vm externalUses: #( EA EB EC ED EF ). "this measurre the ratio of local vs. global use"
+	self assert: vm localityUseRatio equals: (self percent: 3 / 8)
 ]

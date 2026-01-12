@@ -14,10 +14,10 @@ Class {
 { #category : 'tests' }
 VocReporterTest >> setUp [
 
-    super setUp.
-    reporter := VocReporter new.
-    reporter packagePatterns: #('Kernel*' 'Collections*').
-    reporter computeMatchedPackages.
+	super setUp.
+	reporter := CooPackageMetrics new.
+	reporter packagePatterns: #( 'Kernel*' 'Collections*' ).
+	reporter computeMatchedPackages
 ]
 
 { #category : 'tests' }
@@ -101,11 +101,11 @@ VocReporterTest >> testDeprecatedMethods [
 
 { #category : 'tests' }
 VocReporterTest >> testInitialize [
+	"We can test if #initialize sets matchedPackages properly."
 
-    "We can test if #initialize sets matchedPackages properly."
-    | freshReporter |
-    freshReporter := VocReporter new.
-    self assert: (freshReporter matchedPackages isEmpty).
+	| freshReporter |
+	freshReporter := CooPackageMetrics new.
+	self assert: freshReporter matchedPackages isEmpty
 ]
 
 { #category : 'tests' }
