@@ -3,7 +3,7 @@ I'm an abstract class. see my subclasses
 "
 Class {
 	#name : 'CooPackage',
-	#superclass : 'Object',
+	#superclass : 'PackageAnalyser',
 	#category : 'ExtendedHeuristicCompletion-Analyser',
 	#package : 'ExtendedHeuristicCompletion-Analyser'
 }
