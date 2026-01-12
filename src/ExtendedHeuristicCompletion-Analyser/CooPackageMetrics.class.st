@@ -118,15 +118,17 @@ CooPackageMetrics class >> roassalTests [
 
 { #category : 'examples' }
 CooPackageMetrics class >> runAllForPackageNames: packageNames [
+
 	| rows reporter |
 	rows := super runForPackageNames: packageNames.
 	reporter := self new.
 	reporter packagePatterns: packageNames.
 	reporter computeMatchedPackages.
+	reporter logAnalysis.
 	^ Dictionary new
-		at: #packageMetrics put: rows;
-		at: #vocReporter put: reporter gatherAnalysis;
-		yourself
+		  at: #packageMetrics put: rows;
+		  at: #vocReporter put: reporter gatherAnalysis;
+		  yourself
 ]
 
 { #category : 'examples' }
