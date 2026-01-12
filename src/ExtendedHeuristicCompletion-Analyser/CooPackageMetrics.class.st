@@ -227,18 +227,20 @@ CooPackageMetrics class >> seasideTests [
 		   'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'. 'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session' }) inspect
 ]
 
-{ #category : 'TO-DELETE' }
+{ #category : 'examples' }
 CooPackageMetrics class >> spec [
 
 	<script>
-	^ self runAllForPackageNames:
+	^ self runForPackageNames:
 		  { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
 		  'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'. 'Spec2-Commands'.
 		  'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'. 'Spec2-Layout'. 'Spec2-ListView'.
-		  'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission' }
+		  'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission'. 'Spec2-Adapters-Morphic-Tests'.
+		  'Spec2-Adapters-Stub'. 'Spec2-Backend-Tests'. 'Spec2-Code-Backend-Tests'. 'Spec2-Code-Diff-Tests'. 'Spec2-Code-Tests'.
+		  'Spec2-Commander2-Tests'. 'Spec2-Dialogs-Tests'. 'Spec2-Morphic-Backend-Tests'. 'Spec2-Morphic-Tests'. 'Spec2-Tests' }
 ]
 
-{ #category : 'TO-DELETE' }
+{ #category : 'examples' }
 CooPackageMetrics class >> specTests [
 
 	<script>
