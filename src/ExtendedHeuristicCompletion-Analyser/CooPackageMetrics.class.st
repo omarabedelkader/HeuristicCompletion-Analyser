@@ -89,6 +89,84 @@ CooPackageMetrics class >> formatNumber: value [
 	^ value
 ]
 
+{ #category : 'examples' }
+CooPackageMetrics class >> groupMetricsForPackages: groupPackages name: groupName [
+
+	| groupPackageCount groupClasses groupDefined groupMethods groupDefinedClasses groupAverageMethods groupAverageInstVars groupDeprecated groupUnique groupLongestMethod groupLocalDefs groupExternalDefs groupLocalUses groupExternalUses groupInternalUsers groupInternalRatio groupExternalRefs groupCompletionInternalCount groupCompletionExternalCount groupCompletionSize groupCompletionInternalRatio groupCompletionExternalRatio groupAmbiguity groupEntropy |
+	groupPackageCount := groupPackages size.
+	groupClasses := groupPackages inject: 0 into: [ :sum :pkg | sum + pkg classes size ].
+	groupDefined := groupPackages inject: 0 into: [ :sum :pkg | sum + pkg definedClasses size ].
+	groupMethods := groupPackages inject: 0 into: [ :sum :pkg | sum + pkg methods size ].
+	groupDefinedClasses := groupPackages flatCollect: [ :pkg | pkg definedClasses ].
+	groupAverageMethods := groupClasses = 0
+		                     ifTrue: [ 0.0 ]
+		                     ifFalse: [ groupMethods / groupClasses asFloat ].
+	groupAverageInstVars := self averageInstanceVariablesFor: groupDefinedClasses.
+	groupDeprecated := groupPackages inject: 0 into: [ :sum :pkg | sum + (self deprecatedMethodsFor: pkg) ].
+	groupUnique := groupPackages inject: 0 into: [ :sum :pkg | sum + (self uniqueMethodsFor: pkg) ].
+	groupLongestMethod := self longestMethodSummaryForPackages: groupPackages.
+	groupLocalDefs := 0.
+	groupExternalDefs := 0.
+	groupLocalUses := 0.
+	groupExternalUses := 0.
+	groupInternalUsers := 0.
+	groupExternalRefs := 0.
+	groupCompletionInternalCount := 0.
+	groupCompletionExternalCount := 0.
+	groupEntropy := 0.0.
+	groupPackages do: [ :pkg |
+		| analyser |
+		analyser := PackageAnalyser new.
+		analyser runAnalysisForPackage: pkg.
+		groupLocalDefs := groupLocalDefs + analyser definedClassNames size.
+		groupExternalDefs := groupExternalDefs + analyser externalReferences size.
+		groupLocalUses := groupLocalUses + (self referenceCountFor: analyser internalClassReferences in: analyser).
+		groupExternalUses := groupExternalUses + (self referenceCountFor: analyser externalReferences in: analyser).
+		groupInternalUsers := groupInternalUsers + analyser internalUserCount.
+		groupExternalRefs := groupExternalRefs + analyser externalReferences size.
+		groupCompletionInternalCount := groupCompletionInternalCount + analyser completionVocabularyInternalCount.
+		groupCompletionExternalCount := groupCompletionExternalCount + analyser completionVocabularyExternalCount.
+		groupEntropy := groupEntropy + analyser completionEntropy ].
+	groupInternalRatio := groupLocalDefs = 0
+		                     ifTrue: [ 0.0 ]
+		                     ifFalse: [ groupInternalUsers / groupLocalDefs asFloat ].
+	groupCompletionSize := groupCompletionInternalCount + groupCompletionExternalCount.
+	groupCompletionInternalRatio := groupCompletionSize = 0
+		                               ifTrue: [ 0.0 ]
+		                               ifFalse: [ groupCompletionInternalCount / groupCompletionSize asFloat ].
+	groupCompletionExternalRatio := groupCompletionSize = 0
+		                               ifTrue: [ 0.0 ]
+		                               ifFalse: [ groupCompletionExternalCount / groupCompletionSize asFloat ].
+	groupAmbiguity := groupCompletionExternalRatio.
+	^ Dictionary new
+		  at: #name put: (self latexEscape: groupName);
+		  at: #packageCount put: groupPackageCount;
+		  at: #totalClasses put: groupClasses;
+		  at: #definedClasses put: groupDefined;
+		  at: #totalMethods put: groupMethods;
+		  at: #averageMethodsPerClass put: groupAverageMethods;
+		  at: #averageInstanceVariablesPerClass put: groupAverageInstVars;
+		  at: #classPackageRatio put: (self ratioFor: groupClasses denominator: groupPackageCount);
+		  at: #classMethodRatio put: (self ratioFor: groupClasses denominator: groupMethods);
+		  at: #deprecatedMethods put: groupDeprecated;
+		  at: #uniqueMethods put: groupUnique;
+		  at: #methodsWithMostLinesOfCode put: groupLongestMethod;
+		  at: #localityDefinitionRatio put: (self ratioFor: groupLocalDefs denominator: groupLocalDefs + groupExternalDefs);
+		  at: #localityUseRatio put: (self ratioFor: groupLocalUses denominator: groupLocalUses + groupExternalUses);
+		  at: #localityDefUseRatio put: (self ratioFor: groupLocalUses denominator: groupLocalDefs);
+		  at: #internalUserRatio put: groupInternalRatio;
+		  at: #internalUserCount put: groupInternalUsers;
+		  at: #externalReferenceCount put: groupExternalRefs;
+		  at: #completionVocabularySize put: groupCompletionSize;
+		  at: #completionVocabularyInternalRatio put: groupCompletionInternalRatio;
+		  at: #completionVocabularyExternalRatio put: groupCompletionExternalRatio;
+		  at: #completionAmbiguity put: groupAmbiguity;
+		  at: #completionEntropy put: (groupPackageCount = 0
+			                               ifTrue: [ 0.0 ]
+			                               ifFalse: [ groupEntropy / groupPackageCount asFloat ]);
+		  yourself
+]
+
 { #category : 'TO-DELETE' }
 CooPackageMetrics class >> iceberg [
 
@@ -122,6 +200,82 @@ CooPackageMetrics class >> latexEscape: aString [
 	escaped := escaped copyReplaceAll: '{' with: '\{'.
 	escaped := escaped copyReplaceAll: '}' with: '\}'.
 	^ escaped
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> logGroupedTablesForPackageNames: packageNames [
+
+	| groups groupedRows groupedMetrics |
+	groups := Dictionary new.
+	packageNames do: [ :name |
+		| groupName |
+		groupName := PackageAnalyser packageGroupNameFor: name.
+		(groups at: groupName ifAbsentPut: [ OrderedCollection new ]) add: name ].
+	groupedRows := groups keys asSortedCollection collect: [ :groupName |
+		| groupPackages |
+		groupPackages := ((groups at: groupName)
+			                 collect: [ :name | PackageOrganizer default packageNamed: name ])
+			                 select: [ :pkg | pkg notNil ].
+		self groupMetricsForPackages: groupPackages name: groupName ].
+	groupedMetrics := groupedRows collect: [ :row |
+		Dictionary newFrom: (row associations collect: [ :assoc |
+			assoc key -> ((assoc value isNumber and: [ assoc value isInteger not ])
+				              ifTrue: [ assoc value printShowingDecimalPlaces: 2 ]
+				              ifFalse: [ assoc value ]) ]) ].
+	self logLatexTableWithTitle: 'Grouped Table 1'
+		headers: { 'Group'. 'M_{pkg}'. 'C_{tot}'. 'C_{def}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #packageCount.
+					 row at: #totalClasses.
+					 row at: #definedClasses } ]).
+	self logLatexTableWithTitle: 'Grouped Table 2'
+		headers: { 'Group'. 'M_{tot}'. 'AM_{cls}'. 'AI_{cls}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #totalMethods.
+					 row at: #averageMethodsPerClass.
+					 row at: #averageInstanceVariablesPerClass } ]).
+	self logLatexTableWithTitle: 'Grouped Table 3'
+		headers: { 'Group'. 'R_{CP}'. 'R_{CM}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #classPackageRatio.
+					 row at: #classMethodRatio } ]).
+	self logLatexTableWithTitle: 'Grouped Table 4'
+		headers: { 'Group'. 'M_{dep}'. 'U_{sel}'. 'M_{LOC}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #deprecatedMethods.
+					 row at: #uniqueMethods.
+					 row at: #methodsWithMostLinesOfCode } ]).
+	self logLatexTableWithTitle: 'Grouped Table 5'
+		headers: { 'Group'. 'R_{def}'. 'R_{use}'. 'R_{du}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #localityDefinitionRatio.
+					 row at: #localityUseRatio.
+					 row at: #localityDefUseRatio } ]).
+	self logLatexTableWithTitle: 'Grouped Table 6'
+		headers: { 'Group'. 'R_{int}'. 'U_{int}'. 'R_{ext}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #internalUserRatio.
+					 row at: #internalUserCount.
+					 row at: #externalReferenceCount } ]).
+	self logLatexTableWithTitle: 'Grouped Table 7'
+		headers: { 'Group'. 'V'. 'R_{V}^{int}'. 'R_{V}^{ext}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #completionVocabularySize.
+					 row at: #completionVocabularyInternalRatio.
+					 row at: #completionVocabularyExternalRatio } ]).
+	self logLatexTableWithTitle: 'Grouped Table 8'
+		headers: { 'Group'. 'A_{comp}'. 'H_{comp}' }
+		rows: (groupedMetrics collect: [ :row |
+					 { row at: #name.
+					 row at: #completionAmbiguity.
+					 row at: #completionEntropy } ])
 ]
 
 { #category : 'examples' }
@@ -260,6 +414,24 @@ CooPackageMetrics class >> longestMethodSummaryFor: pkg [
 		  (top first methodClass name , '>>' , top first selector printString , ' (' , top second printString , ')')
 ]
 
+{ #category : 'examples' }
+CooPackageMetrics class >> longestMethodSummaryForPackages: groupPackages [
+
+	| bestMethod bestLines |
+	bestLines := -1.
+	bestMethod := nil.
+	groupPackages do: [ :pkg |
+		pkg methods do: [ :method |
+			| lineCount |
+			lineCount := method sourceCode lines size.
+			lineCount > bestLines ifTrue: [
+				bestLines := lineCount.
+				bestMethod := method ] ] ].
+	bestMethod ifNil: [ ^ '-' ].
+	^ self latexEscape:
+		  (bestMethod methodClass name , '>>' , bestMethod selector printString , ' (' , bestLines printString , ')')
+]
+
 { #category : 'TO-DELETE' }
 CooPackageMetrics class >> moose [
 
@@ -390,6 +562,52 @@ CooPackageMetrics class >> referenceCountFor: classNames in: analyser [
 
 	^ classNames inject: 0 into: [ :sum :className |
 		  sum + (analyser referencesForClass: className) size ]
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> runForPackageNames: packageNames [
+
+	| rows metrics packages |
+	rows := super runForPackageNames: packageNames.
+	self logGroupedTablesForPackageNames: packageNames.
+	packages := (packageNames collect: [ :name | PackageOrganizer default packageNamed: name ])
+		            select: [ :pkg | pkg notNil ].
+	metrics := self new.
+	metrics matchedPackages: packages.
+	metrics logAnalysis.
+	^ rows
+]
+
+{ #category : 'examples' }
+CooPackageMetrics class >> sunmmary [
+
+	<script>
+	^ self runForPackageNames:
+		  { 'Spec2-Adapters-Morphic'. 'Spec2-Adapters-Morphic-ListView'. 'Spec2-Adapters-Stub'. 'Spec2-Code'. 'Spec2-Code-Commands'.
+		  'Spec2-Code-Diff'. 'Spec2-Code-Diff-Morphic'. 'Spec2-Code-Morphic'. 'Spec2-CommandLine'. 'Spec2-Commander2'. 'Spec2-Commands'.
+		  'Spec2-CommonWidgets'. 'Spec2-Core'. 'Spec2-Dialogs'. 'Spec2-Examples'. 'Spec2-Interactions'. 'Spec2-Layout'. 'Spec2-ListView'.
+		  'Spec2-Microdown'. 'Spec2-Morphic'. 'Spec2-Morphic-Examples'. 'Spec2-Transmission'. 'Spec2-Adapters-Morphic-Tests'.
+		  'Spec2-Adapters-Stub'. 'Spec2-Backend-Tests'. 'Spec2-Code-Backend-Tests'. 'Spec2-Code-Diff-Tests'. 'Spec2-Code-Tests'.
+		  'Spec2-Commander2-Tests'. 'Spec2-Dialogs-Tests'. 'Spec2-Morphic-Backend-Tests'. 'Spec2-Morphic-Tests'. 'Spec2-Tests'.
+		  'Roassal'. 'Roassal-Animation'. 'Roassal-BaselineMap'. 'Roassal-Builders'. 'Roassal-Chart'. 'Roassal-Chart-Examples'.
+		  'Roassal-Class-Examples'. 'Roassal-Colors'. 'Roassal-DSM'. 'Roassal-Event'. 'Roassal-Examples'. 'Roassal-Experimental'.
+		  'Roassal-Exporters'. 'Roassal-Exporters-Examples'. 'Roassal-FlameGraph-Examples'. 'Roassal-Inspector'. 'Roassal-Interaction'.
+		  'Roassal-LayoutStudio'. 'Roassal-Layouts'. 'Roassal-Layouts-Util'. 'Roassal-Legend'. 'Roassal-Legend-Examples'.
+		  'Roassal-Menu'. 'Roassal-Mondrian'. 'Roassal-Pie'. 'Roassal-Pie-Examples'. 'Roassal-SVG'. 'Roassal-SVG-Examples'.
+		  'Roassal-Shapes'. 'Roassal-Spec'. 'Roassal-Spec-Examples'. 'Roassal-Spec-Morphic'. 'Roassal-Sunburst'. 'Roassal-Sunburst-Examples'.
+		  'Roassal-TreeMap'. 'Roassal-TreeMap-Examples'. 'Roassal-UML'. 'Roassal-UML-Calypso'. 'Roassal-UML-Examples'.
+		  'Roassal-Animation-Tests'. 'Roassal-BaselineMap-Tests'. 'Roassal-Chart-Tests'. 'Roassal-Exporters-Tests'.
+		  'Roassal-Global-Tests'. 'Roassal-Inspector-Tests'. 'Roassal-Interaction-Tests'. 'Roassal-LayoutStudio-Tests'.
+		  'Roassal-Layouts-Tests'. 'Roassal-Shapes-Tests'. 'Roassal-Spec-Tests'. 'Roassal-SVG-Tests'. 'Roassal-UML-Tests'.
+		  'Seaside-Ajaxifier-Core'. 'Seaside-Canvas'. 'Seaside-Component'. 'Seaside-Continuation'. 'Seaside-Core'. 'Seaside-Development'.
+		  'Seaside-Email'. 'Seaside-Environment'. 'Seaside-Examples'. 'Seaside-Flow'. 'Seaside-JSON-Core'. 'Seaside-Pharo-Canvas'.
+		  'Seaside-Pharo-Continuation'. 'Seaside-Pharo-Core'. 'Seaside-Pharo-Development'. 'Seaside-Pharo-Email'. 'Seaside-Pharo-Environment'.
+		  'Seaside-Pharo-Flow'. 'Seaside-Pharo-JSON-Core'. 'Seaside-Pharo-Tools-Web'. 'Seaside-Pharo-Welcome'. 'Seaside-REST-Core'.
+		  'Seaside-RenderLoop'. 'Seaside-Session'. 'Seaside-Tools-Core'. 'Seaside-Tools-Web'. 'Seaside-Welcome'. 'Seaside-Widgets'.
+		  'Seaside-Zinc-Core'. 'Seaside-Zinc-Pharo'. 'Seaside-Tests-Canvas'. 'Seaside-Tests-Component'. 'Seaside-Tests-Core'.
+		  'Seaside-Tests-Environment'. 'Seaside-Tests-Flow'. 'Seaside-Tests-Functional'. 'Seaside-Tests-Pharo-Canvas'.
+		  'Seaside-Tests-Pharo-Continuation'. 'Seaside-Tests-Pharo-Core'. 'Seaside-Tests-Pharo-Functional'.
+		  'Seaside-Tests-RenderLoop'. 'Seaside-Tests-Session' }
 ]
 
 { #category : 'examples' }
