@@ -36,6 +36,20 @@ VocabularyMetricTest >> testDefinitionRatio [
 ]
 
 { #category : 'tests' }
+VocabularyMetricTest >> testFormatNumber [
+
+	self assert: (CooPackageMetrics formatNumber: 12) equals: 12.
+	self assert: (CooPackageMetrics formatNumber: 1.234) equals: '1.23'
+]
+
+{ #category : 'tests' }
+VocabularyMetricTest >> testLatexEscape [
+
+	self assert: (CooPackageMetrics latexEscape: 'A&B_#%') equals: 'A\&B\_\#\%'.
+	self assert: (CooPackageMetrics latexEscape: '{x}\y') equals: '\{x\}\\y'
+]
+
+{ #category : 'tests' }
 VocabularyMetricTest >> testPrinting [
 
 	| vm |
@@ -48,6 +62,27 @@ VocabularyMetricTest >> testPrinting [
 	self assert: vm printString equals: 'locality definition ratio: 0.38 (6/16)
 locality use ratio: 0.38 (3/8)
 local def/use ratio: 0.5 (3/6)'
+]
+
+{ #category : 'tests' }
+VocabularyMetricTest >> testRatioForZeroDenominator [
+
+	self assert: (CooPackageMetrics ratioFor: 10 denominator: 0) equals: 0.0.
+	self assert: (CooPackageMetrics ratioFor: 4 denominator: 2) equals: 2.0
+]
+
+{ #category : 'tests' }
+VocabularyMetricTest >> testReferenceCountForAnalyser [
+
+	| analyser count |
+	analyser := PackageAnalyser new.
+	analyser instVarNamed: 'referencesByClass' put: (Dictionary new
+		at: #Alpha put: #( 1 2 );
+		at: #Beta put: #( 3 );
+		yourself).
+	count := CooPackageMetrics referenceCountFor: #( Alpha Beta ) in: analyser.
+
+	self assert: count equals: 3
 ]
 
 { #category : 'tests' }
